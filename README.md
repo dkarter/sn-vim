@@ -25,4 +25,13 @@ were previously missing from the official Vim editor:
 
 - Status bar (word count/vim mode)
 - Ability to change themes (currently monokai is hardcoded)
+  - Utilize StyleKit design tokens
 - Ability to change font size using keyboard shortcuts
+
+## Installation
+
+1. Open StandardNotes
+2. Click the "Extensions" button on the bottom left
+3. Click "Import Extension" in the menu that opens
+4. Enter `https://dkarter.github.io/sn-vim/ext.json`
+5. Review and click `Install`
