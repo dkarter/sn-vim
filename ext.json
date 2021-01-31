@@ -5,7 +5,7 @@
   "area": "editor-editor",
   "version": "0.1.0",
   "description": "StandardNotes Vim Markdown editor based on CodeMirror",
-  "url": "http://localhost:3000/index.html",
+  "url": "https://dkarter.github.io/sn-vim/",
   "download_url": "",
   "latest_url": "",
   "marketing_url": "https://github.com/dkarter/sn-vim",
