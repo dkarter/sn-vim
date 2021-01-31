@@ -1,0 +1,13 @@
+{
+  "identifier": "org.libfreedom.sn-vim",
+  "name": "SNVim",
+  "content_type": "SN|Component",
+  "area": "editor-editor",
+  "version": "0.1.0",
+  "description": "StandardNotes Vim Markdown editor based on CodeMirror",
+  "url": "http://localhost:3000/index.html",
+  "download_url": "",
+  "latest_url": "",
+  "marketing_url": "https://github.com/dkarter/sn-vim",
+  "thumbnail_url": ""
+}

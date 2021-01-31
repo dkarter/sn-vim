@@ -1,144 +1,58 @@
-import React from 'react';
-import { EditorKit, EditorKitDelegate } from 'sn-editor-kit';
+import React, { useEffect, useRef } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import 'codemirror/keymap/vim';
+import 'codemirror/theme/monokai.css';
+import 'codemirror/mode/markdown/markdown';
+import 'codemirror/addon/edit/continuelist';
 
-export enum HtmlElementId {
-  snComponent = 'sn-component',
-  textarea = 'textarea',
-}
+import { useEditorKit } from './useEditorKit';
 
-export enum HtmlClassName {
-  snComponent = 'sn-component',
-  textarea = 'sk-input contrast textarea',
-}
+const Editor: React.FC = () => {
+  const { initialNoteText, saveNoteText } = useEditorKit();
+  const codeMirrorRef = useRef<CodeMirror>(null);
 
-export interface EditorInterface {
-  printUrl: boolean;
-  text: string;
-}
+  // set the content of the editor when we get the initial text from the server
+  useEffect(() => {
+    if (initialNoteText && codeMirrorRef.current) {
+      const { current: cm } = codeMirrorRef;
+      cm.editor.setValue(initialNoteText);
+    }
+  }, [initialNoteText]);
 
-const initialState = {
-  printUrl: false,
-  text: '',
+  const onChanges = (
+    instance: CodeMirror.Editor,
+    _change: CodeMirror.EditorChangeLinkedList[]
+  ): void => {
+    saveNoteText(instance.getValue());
+  };
+
+  const indentLine = (dir: 'add' | 'subtract') => {
+    if (codeMirrorRef.current) {
+      const { current: cm } = codeMirrorRef;
+      const line = cm.editor.getCursor().line;
+      cm.editor.indentLine(line, dir);
+    }
+  };
+
+  return (
+    <CodeMirror
+      ref={codeMirrorRef}
+      height="100vh"
+      options={{
+        theme: 'monokai',
+        tabSize: 2,
+        indentUnit: 2,
+        keyMap: 'vim',
+        mode: 'markdown',
+        extraKeys: {
+          Enter: 'newlineAndIndentContinueMarkdownList',
+          Tab: () => indentLine('add'),
+          'Shift-Tab': () => indentLine('subtract'),
+        },
+      }}
+      onChanges={onChanges}
+    />
+  );
 };
 
-let keyMap = new Map();
-
-export default class Editor extends React.Component<{}, EditorInterface> {
-  editorKit: any;
-
-  constructor(props: EditorInterface) {
-    super(props);
-    this.configureEditorKit();
-    this.state = initialState;
-  }
-
-  configureEditorKit = () => {
-    let delegate = new EditorKitDelegate({
-      /** This loads every time a different note is loaded */
-      setEditorRawText: (text: string) => {
-        this.setState({
-          ...initialState,
-          text,
-        });
-      },
-      clearUndoHistory: () => {},
-      getElementsBySelector: () => [],
-    });
-
-    this.editorKit = new EditorKit({
-      delegate: delegate,
-      mode: 'plaintext',
-      supportsFilesafe: false,
-    });
-  };
-
-  handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const target = event.target;
-    const value = target.value;
-    this.saveText(value);
-  };
-
-  saveText = (text: string) => {
-    this.saveNote(text);
-    this.setState({
-      text: text,
-    });
-  };
-
-  saveNote = (text: string) => {
-    /** This will work in an SN context, but breaks the standalone editor,
-     * so we need to catch the error
-     */
-    try {
-      this.editorKit.onEditorValueChanged(text);
-    } catch (error) {
-      console.log('Error saving note:', error);
-    }
-  };
-
-  onBlur = (e: React.FocusEvent) => {};
-
-  onFocus = (e: React.FocusEvent) => {};
-
-  onKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
-    keyMap.set(e.key, true);
-    // Do nothing if 'Control' and 's' are pressed
-    if (keyMap.get('Control') && keyMap.get('s')) {
-      e.preventDefault();
-    }
-  };
-
-  onKeyUp = (e: React.KeyboardEvent | KeyboardEvent) => {
-    keyMap.delete(e.key);
-  };
-
-  render() {
-    const { text } = this.state;
-    return (
-      <div
-        className={
-          HtmlElementId.snComponent + (this.state.printUrl ? ' print-url' : '')
-        }
-        id={HtmlElementId.snComponent}
-        tabIndex={0}
-      >
-        <p>
-          Edit <code>src/components/Editor.tsx</code> and save to reload.
-        </p>
-        <p>
-          Visit the{' '}
-          <a
-            href="https://docs.standardnotes.org/extensions/intro"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Standard Notes documentation
-          </a>{' '}
-          to learn how to work with the Standard Notes API or{' '}
-          <a
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          .
-        </p>
-        <textarea
-          id={HtmlElementId.textarea}
-          name="text"
-          className={'sk-input contrast textarea'}
-          placeholder="Type here. Text in this textarea is automatically saved in Standard Notes"
-          rows={15}
-          spellCheck="true"
-          value={text}
-          onBlur={this.onBlur}
-          onChange={this.handleInputChange}
-          onFocus={this.onFocus}
-          onKeyDown={this.onKeyDown}
-          onKeyUp={this.onKeyUp}
-        />
-      </div>
-    );
-  }
-}
+export default Editor;
